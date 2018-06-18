@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>osu!koko Options</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <div class="center">
+    <center>
+      <img src="img/title2.png" alt="osu!koko options">
+    </center>
+    <form action="popup.html">
+      <button type="submit">
+        < Back</button>
+    </form>
+    <hr>
+    <label>
+      <input type="checkbox" id="DwnEnbl">
+      <b>Enable downloads</b>
+    </label>
+    <br>
+    <label>
+      <input type="checkbox" id="DwnBmVi" id="save"> Download beatmaps with videos
+    </label>
+    <br>
+    <label>
+      <input type="checkbox" id="DwnCount"> Download counter
+      <span id="DwnCountVal"></span>
+      <button id="reset">Reset</button>
+      <span id="resetstatus"></span>
+    </label>
+    <br>
+    <label>
+      <input type="checkbox" id="pptc"> koko!tracker:
+      <input type="text" name="" id="pptu" placeholder="osu! username" size="10">
+    </label>
+    <br>
+    <label>
+      <input type="checkbox" id="shwame"> Show the warning message
+    </label>
+    <br>
+    <label>
+      <small>Advanced:</small>
+      <br>
+      <input type="checkbox" id="debug">
+      <small>Console logs (debug)</small>
+    </label>
+    <div id="status"></div>
+    <br>
+    <button id="save">Save</button>
+  </div>
+  <script src="js/options.js"></script>
+</body>
+
+</html>

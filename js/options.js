@@ -5,7 +5,6 @@ function save_options() {
     var DwnEnbl = document.getElementById('DwnEnbl').checked;
     var DwnBmVi = document.getElementById('DwnBmVi').checked;
     var DwnCount = document.getElementById('DwnCount').checked;
-    var DwnCountVal = document.getElementById('DwnCountVal').checked;
     var debug = document.getElementById('debug').checked;
     var pptc = document.getElementById('pptc').checked;
     var pptu = document.getElementById('pptu').value;
@@ -66,6 +65,8 @@ function reset() {
     DwnCountVal: 0
   }, function () {
     var status = document.getElementById('resetstatus');
+    var dCounter = document.getElementById('DwnCountVal');
+    dCounter.textContent = '(0)';
     status.textContent = 'Reseted!';
     setTimeout(function () {
       status.textContent = '';
@@ -104,10 +105,6 @@ document.getElementById('save').addEventListener('click',
   save_options);
 document.getElementById('reset').addEventListener('click',
   reset);
-document.getElementById('dospoiler').addEventListener('click',
-  spoiler);
-document.getElementById('dospoiler2').addEventListener('click',
-  spoiler2);
 document.getElementById('pptu').addEventListener('click',
   whitebg);
 

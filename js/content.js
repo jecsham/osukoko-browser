@@ -1,90 +1,180 @@
-var DwnEnbl;
-var DwnBmVi;
-var DwnCount;
-var DwnCountVal;
-var DEBUG;
-browser.storage.local.get([
-	'DwnEnbl',
-	'DwnBmVi',
-	'DwnCount',
-	'DwnCountVal',
-	'debug'], function (result) {
-		DwnEnbl = result.DwnEnbl;
-		DwnBmVi = result.DwnBmVi;
-		DwnCount = result.DwnCount;
-		DwnCountVal = result.DwnCountVal;
-		DEBUG = result.debug;
+/**
+ * 
+ * Content Script
+ * File from osu! koko extension
+ * 
+ */
 
-		if (!DEBUG) {
-			console.log = function () { }
-		}
+//config vars
+var config = {
+	download_enabled: null,
+	download_video: null,
+	download_count: null,
+	download_count_val: null,
+	DEBUG: null
+};
 
-		if (DwnEnbl) {
-			console.log("osu!koko: Log on");
-			if (isLoggedIn()) {
-				console.log("osu!koko: account is logged in");
-				var url = window.location.href;
-				console.log("osu!koko: URL: " + url);
-				if (url.substring(0, 31) == "https://osu.ppy.sh/beatmapsets/") {
-					console.log("osu!koko: True event, url match with https://osu.ppy.sh/beatmapsets/");
-					console.log("osu!koko: Checking if its a beatmap...");
-					var beatidf = url.substring(31);
-					var beatid = beatidf.charAt(0);
-					for (var i = 1; ((beatidf.charAt(i) != "/") && (beatidf.charAt(i) != "#")); i++) {
-						beatid = beatid + beatidf.charAt(i);
+var dlLink = null;
+var is_old_style = null;
 
-					}
-					console.log("osu!koko: ID: " + beatid);
+//Get user config
+browser.storage.local.get({
+	DwnEnbl: true,
+	DwnBmVi: false,
+	DwnCount: true,
+	DwnCountVal: 0,
+	debug: false
+}, function (result) {
+	config.download_enabled = result.DwnEnbl;
+	config.download_video = result.DwnBmVi;
+	config.download_count = result.DwnCount;
+	config.download_count_val = result.DwnCountVal;
+	config.DEBUG = result.debug;
 
-					if (isInt(beatid)) {
-						console.log("osu!koko: Its a beatmap!");
-						if (DwnBmVi) {
-							window.open("https://osu.ppy.sh/beatmapsets/" + beatid + "/download");
-							console.log("osu!koko: Download start with video, according to the user configuration");
-						} else {
-							window.open("https://osu.ppy.sh/beatmapsets/" + beatid + "/download?noVideo=1");
-							console.log("osu!koko: Download start without video, according to the user configuration");
-						}
-						if (DwnCount) {
-							DwnCountVal = DwnCountVal + 1;
-							browser.storage.local.set({
-								DwnCountVal: DwnCountVal
-							}, function () {
-								console.log("osu!koko: Download count increment to " + DwnCountVal);
-
-							});
-						}
-
+	//Enable/disable console logs
+	if (!config.DEBUG) {
+		console.log = function () { }
+	}
+	//If Enable download option is checked
+	if (config.download_enabled) {
+		download_process: {
+			log("Logs enabled!");
+			is_old_style = isOldStyle();
+			if (isIndexBeatmapPage(is_old_style)) {
+				log("Is index page. Download process break");
+				break download_process;
+			}
+			//If user is logged in
+			if (isLoggedIn(is_old_style)) {
+				log("Account is logged in");
+				//Compare site style
+				if (is_old_style) {
+					//Old site event
+					log("Style: old style");
+					//Get href attribute of download button by class
+					dlLink = document.getElementsByClassName("beatmap_download_link")[0].href;
+					//If Download with video option is enabled
+					if (config.download_video) {
+						window.open(dlLink);
+						log("Download start with video, according to the user configuration");
+						log("Download link: " + dlLink);
 					} else {
-						console.log("osu!koko: Is not a beatmap. Nothing to do here.");
-						console.log("osu!koko: Bye bye.");
+						window.open(dlLink + "n");
+						log("Download start without video, according to the user configuration");
+						//if Download with video option es disabled, "n" are appended in the link
+						log("Download link: " + dlLink + "n");
 					}
 				} else {
-					console.log("osu!koko: False event, url dont match with https://osu.ppy.sh/ Nothing to do here.");
-					console.log("osu!koko: Bye bye.")
+					//New site event
+					log("Style: new style");
+					//Get href attribute of download button by class
+					dlLink = document.getElementsByClassName("btn-osu-big btn-osu-big--beatmapset-header js-beatmapset-download-link")[0].href;
+					if (config.download_video) {
+						window.open(dlLink);
+						log("Download start with video, according to the user configuration");
+						log("Download link: " + dlLink);
+					} else {
+						window.open(dlLink + "?noVideo=1");
+						log("Download start without video, according to the user configuration");
+						//if Download with video option es disabled, "?noVideo=1" are appended in the link
+						log("Download link: " + dlLink + "?noVideo=1");
+					}
 				}
+				//Downloads counter function
+				increaseDowloadCounter(config.download_count);
+
 			} else {
-				console.log("osu!koko: account is not logged in");
+				log("Account is not logged in");
+				launchModal("Automatic download can't start because user isn't logged in :(<br>Press F5 when you have logged in");
 			}
 
-		} else {
-			console.log("osu!koko: Downloads disabled, according to the user configuration")
 		}
-	});
 
-function isInt(value) {
-	if (isNaN(value)) {
+
+	} else {
+		log("Downloads disabled, according to the user configuration")
+	}
+});
+/**
+ * 
+ * Functions
+ * 
+ */
+
+//Check if user is logged in
+function isLoggedIn(oldStyle) {
+	if (is_old_style) {
+		if (document.getElementsByClassName("mini-avatar").length > 0) {
+			return true;
+		} else {
+			return false;
+		}
+
+	} else {
+		if (document.getElementsByClassName("notification-icon__count").length > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}
+
+//check if is a beatmap page or beatmap index page
+function isIndexBeatmapPage(oldsite) {
+	if ((oldsite == false) && (document.getElementsByClassName("osu-page osu-page--beatmapsets-search-header").length > 0)) {
+		return true;
+	} else {
 		return false;
 	}
-	var x = parseFloat(value);
-	return (x | 0) === x;
+
 }
-function isLoggedIn() {
-	var arr = document.getElementsByClassName("btn-osu-big btn-osu-big--beatmapset-header js-beatmapset-download-link");
-	if (arr.length > 0) {
+//Check the user site type
+function isOldStyle() {
+	//Only the old site has that class
+	if (document.getElementsByClassName("mainbody").length > 0) {
 		return true;
 	} else {
 		return false;
 	}
 }
 
+function increaseDowloadCounter(isEnabled) {
+	if (isEnabled) {
+		config.download_count_val = config.download_count_val + 1;
+		browser.storage.local.set({
+			DwnCountVal: config.download_count_val
+		}, function () {
+			log("Download count increment to " + config.download_count_val);
+		});
+	}
+
+}
+//console log
+function log(message) {
+	console.log("osu! koko: " + message);
+}
+
+//modal
+function launchModal(message) {
+	log("Modal running");
+	div = document.createElement('div');
+	document.body.appendChild(div);
+	div.innerHTML = '<div id="myModal" class="modal">' +
+		'<div class="modal-content">' +
+		'<div class="modal-header">' +
+		'<h2>Koko-chan:</h2>' +
+		'</div>' +
+		'<div class="modal-body">' +
+		'<p>' + message + '</p>' +
+		'</div>' +
+		'</div>' +
+		'</div>';
+	var modal = document.getElementById('myModal');
+	modal.style.display = "block";
+	window.onclick = function (event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
+	}
+}

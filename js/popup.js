@@ -1,5 +1,5 @@
 'use strict';
-//update downloads count  text in popup.html
+//update downloads count text in popup.html
 browser.storage.local.get({
   DwnCount: true,
   DwnCountVal: 0
@@ -28,37 +28,40 @@ function publicateWame() {
     '<ol>' +
     '<li>This is NOT an official osu! extension.</li>' +
     '<li>Keep in mind that osu! has a formidable feature to download beatmaps for those who <a href="https://osu.ppy.sh/store/listing"> buy the osu! suppoerter tag.</a></li>' +
-    '<li><strong>osu!koko</strong> DONT work with the old site style.</li>' +
     '</ol></div>';
 }
 
-//pp table of koko!tracker
-var pposuplus;
-var pposurankplus;
-var pposucrankplus;
-var pptaikoplus;
-var pptaikorankplus;
-var pptaikocrankplus;
-var ppcatchplus;
-var ppcatchrankplus;
-var ppcatchcrankplus;
-var ppmaniaplus;
-var ppmaniarankplus;
-var ppmaniacrankplus;
-var pposu;
-var pptaiko;
-var ppcatch;
-var ppmania;
-var pposurank;
-var pposucrank;
-var pptaikorank;
-var pptaikocrank;
-var ppcatchrank;
-var ppcatchcrank;
-var ppmaniarank;
-var ppmaniacrank;
-var pptu;
-var lastUpdateTable;
+/**
+ * 
+ * koko!tracker beta Algorithm
+ * 
+ */
+var pposuplus = null;
+var pposurankplus = null;
+var pposucrankplus = null;
+var pptaikoplus = null;
+var pptaikorankplus = null;
+var pptaikocrankplus = null;
+var ppcatchplus = null;
+var ppcatchrankplus = null;
+var ppcatchcrankplus = null;
+var ppmaniaplus = null;
+var ppmaniarankplus = null;
+var ppmaniacrankplus = null;
+var pposu = null;
+var pptaiko = null;
+var ppcatch = null;
+var ppmania = null;
+var pposurank = null;
+var pposucrank = null;
+var pptaikorank = null;
+var pptaikocrank = null;
+var ppcatchrank = null;
+var ppcatchcrank = null;
+var ppmaniarank = null;
+var ppmaniacrank = null;
+var pptu = null;
+var lastUpdateTable = null;
 browser.storage.local.get({
   pptc: false,
   pptu: "",
@@ -126,16 +129,16 @@ browser.storage.local.get({
   }
 });
 function publicateTable() {
-  document.getElementById('kokooverview').innerHTML = "<a href = 'https://osu.ppy.sh/users/" + pptu + "'>" + pptu + "'s</a> overview";
+  document.getElementById('kokooverview').innerHTML = "<a href = 'https://osu.ppy.sh/users/" + pptu + "'>" + pptu + "</a>";
   document.getElementById('pptable').innerHTML = "<table>" +
     "<tr><th>Mode</th>" +
     "<th>pp</th>" +
     "<th>Rank (World - Country)</th>" +
     "</tr>" +
-    "<tr><td>osu!</td><td>" + toNum(pposu) + moreless(pposuplus) + "</td><td>" + toNum(pposurank) + moreless(pposurankplus) + "<strong> - </strong>" + toNum(pposucrank) + moreless(pposucrankplus) + "</td></tr>" +
-    "<tr><td>osu!taiko</td><td>" + toNum(pptaiko) + moreless(pptaikoplus) + "</td><td>" + toNum(pptaikorank) + moreless(pptaikorankplus) + "<strong> - </strong>" + toNum(pptaikocrank) + moreless(pptaikocrankplus) + "</td></tr>" +
-    "<tr><td>osu!catch</td><td>" + toNum(ppcatch) + moreless(ppcatchplus) + "</td><td>" + toNum(ppcatchrank) + moreless(ppcatchrankplus) + "<strong> - </strong>" + toNum(ppcatchcrank) + moreless(ppcatchcrankplus) + "</td></tr>" +
-    "<tr><td>osu!mania</td><td>" + toNum(ppmania) + moreless(ppmaniaplus) + "</td><td>" + toNum(ppmaniarank) + moreless(ppmaniarankplus) + "<strong> - </strong>" + toNum(ppmaniacrank) + moreless(ppmaniacrankplus) + "</td></tr></table>" +
+    "<tr><td>standard</td><td>" + toNum(pposu) + moreless(pposuplus) + "</td><td>" + toNum(pposurank) + moreless(pposurankplus) + "<strong> - </strong>" + toNum(pposucrank) + moreless(pposucrankplus) + "</td></tr>" +
+    "<tr><td>taiko</td><td>" + toNum(pptaiko) + moreless(pptaikoplus) + "</td><td>" + toNum(pptaikorank) + moreless(pptaikorankplus) + "<strong> - </strong>" + toNum(pptaikocrank) + moreless(pptaikocrankplus) + "</td></tr>" +
+    "<tr><td>catch</td><td>" + toNum(ppcatch) + moreless(ppcatchplus) + "</td><td>" + toNum(ppcatchrank) + moreless(ppcatchrankplus) + "<strong> - </strong>" + toNum(ppcatchcrank) + moreless(ppcatchcrankplus) + "</td></tr>" +
+    "<tr><td>mania</td><td>" + toNum(ppmania) + moreless(ppmaniaplus) + "</td><td>" + toNum(ppmaniarank) + moreless(ppmaniarankplus) + "<strong> - </strong>" + toNum(ppmaniacrank) + moreless(ppmaniacrankplus) + "</td></tr></table>" +
     "<p><small>Last update: " + lastUpdateTablef() + "</small></p>" +
     "<p><button type='button' id='updt'>Update data</button></p>";
   document.getElementById('updt').addEventListener('click',
@@ -145,6 +148,7 @@ function updateTable() {
   document.getElementById('pptable').innerHTML = "<div class='loading-ani'></div>";
   apiRequest();
 }
+//Time Ago temp algorithm
 function lastUpdateTablef() {
   var d = new Date();
   var actualdate = d.getTime();
@@ -154,11 +158,16 @@ function lastUpdateTablef() {
     return secs + " second(s) ago";
   } else {
     if (timeago < 3600000) {
-      var min = parseInt((timeago / (1000 * 60)) % 60);
-      return min + " minute(s) ago";
+      var mins = parseInt((timeago / (1000 * 60)) % 60);
+      return mins + " minute(s) ago";
     } else {
-      var hour = parseInt((timeago / (1000 * 60 * 60)) % 24);
-      return hour + " hour(s) ago";
+      if (timeago < 86400000) {
+        var hours = parseInt((timeago / (1000 * 60 * 60)) % 24);
+        return hours + " hour(s) ago";
+      }else{
+          var days = parseInt(timeago / (1000 * 60 * 60 * 24 ));
+          return days + " day(s) ago";
+      }
     }
   }
 }
@@ -179,7 +188,12 @@ function toNum(num) {
   num = parseFloat(num).toFixed(2);
   return Number(num).toLocaleString('en');
 }
-
+/**
+ * 
+ * API Request to https://osu-koko.herokuapp.com/
+ * 
+ * 
+ */
 function apiRequest() {
   var xhr = new XMLHttpRequest();
   var d = new Date();
@@ -243,7 +257,7 @@ function apiRequest() {
     publicateTable();
   };
   var data = pptu;
-  xhr.open('GET', 'http://osu-api.kokoservices.rf.gd/osuapi/getuserdata.php?osuname=' + encodeURIComponent(data)); //request slow and limited 1 per sec by IP (server side)
+  xhr.open('GET', 'https://osu-koko.herokuapp.com/osuapi?u=' + encodeURIComponent(data)); //1 request per sec by ip 
   xhr.send();
 
 }
